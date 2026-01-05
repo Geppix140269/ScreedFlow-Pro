@@ -15,6 +15,13 @@ export enum Role {
   LOGISTICS = 'Logistics'
 }
 
+export interface SubTask {
+  id: string;
+  title: string;
+  progress: number;
+  status: TaskStatus;
+}
+
 export interface TeamMember {
   id: string;
   name: string;
@@ -22,6 +29,9 @@ export interface TeamMember {
   avatar: string;
   status: 'active' | 'on-leave' | 'off-site';
   joinedDate: string;
+  email: string;
+  phone: string;
+  accessLevel: 'Admin' | 'Editor' | 'Viewer';
 }
 
 export interface Task {
@@ -31,8 +41,10 @@ export interface Task {
   area: number; // in sqm
   status: TaskStatus;
   assignedTo: string[];
-  dueDate: string;
+  startDate: string;
+  endDate: string;
   progress: number;
+  subTasks: SubTask[];
 }
 
 export interface Material {
@@ -42,10 +54,24 @@ export interface Material {
   stock: number;
   minimumRequired: number;
   usagePerSqm: number;
+  unitCost: number; 
 }
 
-export interface SiteUpdate {
-  timestamp: string;
-  author: string;
-  content: string;
+export interface ProjectBaselines {
+  totalBudget: number;
+  materialBudget: number;
+  labourBudget: number;
+  contingency: number;
+  startDate: string;
+  endDate: string;
+  targetDailySqm: number;
+}
+
+export interface Notification {
+  id: string;
+  type: 'assignment' | 'material' | 'alert' | 'update' | 'financial';
+  title: string;
+  message: string;
+  timestamp: Date;
+  read: boolean;
 }
