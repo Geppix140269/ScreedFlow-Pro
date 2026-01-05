@@ -1,0 +1,7 @@
+{
+  "name": "ScreedFlow Pro",
+  "description": "A specialized project management suite for floor screeding contractors to manage team roles, material inventory, task scheduling, and AI-powered site reporting.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
