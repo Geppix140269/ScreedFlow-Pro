@@ -1,17 +1,14 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 
-// Ensure AI client is initialized with a named parameter
-const getAI = () => {
-  if (!process.env.API_KEY) {
-    throw new Error("API Key is not configured");
-  }
+// Standardizing initialization to follow "Create a new instance right before making an API call" guidance
+// and strictly using process.env.API_KEY as per guidelines.
+const getAIClient = () => {
   return new GoogleGenAI({ apiKey: process.env.API_KEY });
 };
 
-// Generates an automated construction site progress analysis
 export const analyzeSiteProgress = async (tasks: any[], materials: any[], team: any[], baselines: any) => {
-  const ai = getAI();
+  const ai = getAIClient();
   const prompt = `
     Analyze this construction site project for a floor screeding contractor.
     
@@ -20,50 +17,68 @@ export const analyzeSiteProgress = async (tasks: any[], materials: any[], team: 
     MATERIALS: ${JSON.stringify(materials)}
     TEAM: ${JSON.stringify(team)}
     
-    CRITICAL OBJECTIVE: 
     Compare Current Progress vs Original Baselines.
-    
-    Provide a concise strategic report including:
-    1. Schedule Variance: Are we behind the Target End Date? By how much?
-    2. Budget Variance: Estimated current spend vs budget allocation.
-    3. Adverse Situation Alert: Identify the single biggest risk (e.g. "Labour productivity too low to meet June deadline").
-    4. Mitigation Strategy: 3 actions to realign with original budget/schedule.
+    Provide a concise report on Schedule Variance, Budget Variance, Biggest Risk, and Mitigation Strategy.
   `;
 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: prompt,
-      config: {
-        thinkingConfig: { thinkingBudget: 0 } // Disable thinking for faster low-latency reports
+      config: { 
+        thinkingConfig: { thinkingBudget: 0 } 
       }
     });
-    // Correctly accessing .text property (not a method)
     return response.text;
   } catch (error) {
-    console.error("AI Analysis Error:", error);
-    return "Unable to generate AI report at this time. Please check your connection.";
+    console.error("AI Insight Error:", error);
+    return "AI Insight Error.";
   }
 };
 
-// Interactive chat interface for project strategy
+export const analyzePortfolioRisks = async (projects: any[], allTasks: any[], allTeam: any[]) => {
+  const ai = getAIClient();
+  const prompt = `
+    Analyze the entire ScreedFlow Pro screeding portfolio. 
+    PROJECTS: ${JSON.stringify(projects)}
+    ALL TASKS: ${JSON.stringify(allTasks)}
+    ALL TEAM: ${JSON.stringify(allTeam)}
+    
+    OBJECTIVE: 
+    1. Identify which project is at highest risk of missing its baseline completion date.
+    2. Suggest if crew should be moved between projects (e.g. from a completed site to a delayed one).
+    3. Alert on any global resource bottlenecks (e.g. "Only 1 mixer available for 3 active sites").
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
+      config: { 
+        thinkingConfig: { thinkingBudget: 0 } 
+      }
+    });
+    return response.text;
+  } catch (error) {
+    console.error("Portfolio analysis error:", error);
+    return "Portfolio analysis error.";
+  }
+};
+
 export const chatWithSiteAssistant = async (message: string, context: any) => {
-    const ai = getAI();
+    const ai = getAIClient();
     try {
-        const response = await ai.models.generateContent({
+        // Using chat interface as per guidelines for a natural conversational experience
+        const chat = ai.chats.create({
             model: 'gemini-3-flash-preview',
-            contents: `
-                Current Context: ${JSON.stringify(context)}
-                User Question: ${message}
-            `,
             config: {
-                systemInstruction: "You are 'ScreedFlow AI', an expert floor screeding construction assistant. Use provided context to answer project management queries accurately. Focus on budget adherence and schedule compliance."
+                systemInstruction: "You are 'ScreedFlow Pro AI Portfolio Assistant'. You manage multiple floor screeding sites and teams for a major contracting company. Suggest intelligent resource movements and budget realignments across the whole company."
             }
         });
-        // Correctly accessing .text property
+        const response = await chat.sendMessage({ message: `Context: ${JSON.stringify(context)}. User: ${message}` });
         return response.text;
     } catch (error) {
-        console.error("Chat AI Error:", error);
-        return "The AI assistant is temporarily unavailable.";
+        console.error("Assistant unavailable:", error);
+        return "Assistant unavailable.";
     }
 }

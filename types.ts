@@ -12,14 +12,28 @@ export enum Role {
   SCREEDER = 'Screeder',
   MIXER = 'Mixer',
   LABOURER = 'Labourer',
-  LOGISTICS = 'Logistics'
+  LOGISTICS = 'Logistics',
+  CLIENT = 'Client'
 }
 
-export interface SubTask {
+export enum MaterialCategory {
+  CONSUMABLE = 'Consumable',
+  PLANT = 'Plant/Machinery',
+  EQUIPMENT = 'Equipment'
+}
+
+export interface Crew {
   id: string;
-  title: string;
-  progress: number;
-  status: TaskStatus;
+  name: string;
+  leadId: string;
+  memberIds: string[];
+}
+
+export interface FloorPlan {
+  id: string;
+  name: string;
+  url: string; // base64 or URL
+  uploadedAt: string;
 }
 
 export interface TeamMember {
@@ -31,24 +45,28 @@ export interface TeamMember {
   joinedDate: string;
   email: string;
   phone: string;
-  accessLevel: 'Admin' | 'Editor' | 'Viewer';
+  accessLevel: 'Admin' | 'Editor' | 'Viewer' | 'Client';
+  assignedProjectId?: string;
 }
 
 export interface Task {
   id: string;
+  projectId: string;
   title: string;
   zone: string;
-  area: number; // in sqm
+  plannedM2: number; 
+  actualM2: number;
   status: TaskStatus;
-  assignedTo: string[];
+  assignedCrewId?: string;
   startDate: string;
   endDate: string;
-  progress: number;
-  subTasks: SubTask[];
 }
 
 export interface Material {
   id: string;
+  projectId?: string; 
+  locationType: 'Central' | 'Site';
+  category: MaterialCategory;
   name: string;
   unit: string;
   stock: number;
@@ -57,21 +75,19 @@ export interface Material {
   unitCost: number; 
 }
 
-export interface ProjectBaselines {
-  totalBudget: number;
-  materialBudget: number;
-  labourBudget: number;
-  contingency: number;
-  startDate: string;
-  endDate: string;
-  targetDailySqm: number;
-}
-
-export interface Notification {
+export interface Project {
   id: string;
-  type: 'assignment' | 'material' | 'alert' | 'update' | 'financial';
-  title: string;
-  message: string;
-  timestamp: Date;
-  read: boolean;
+  name: string;
+  location: string;
+  type: 'Residential' | 'Commercial' | 'Industrial';
+  baselines: {
+    totalBudget: number;
+    plannedM2: number;
+    targetDailyM2: number;
+    startDate: string;
+    endDate: string;
+  };
+  foremanId: string;
+  status: 'active' | 'bidding' | 'completed';
+  floorPlans?: FloorPlan[];
 }
